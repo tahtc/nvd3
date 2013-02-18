@@ -11,6 +11,8 @@ JS_FILES = \
 	src/models/discreteBar.js \
 	src/models/discreteBarChart.js \
 	src/models/distribution.js \
+	src/models/heatmap.js \
+	src/models/heatmapChart.js \
 	src/models/indentedTree.js \
 	src/models/legend.js \
 	src/models/line.js \

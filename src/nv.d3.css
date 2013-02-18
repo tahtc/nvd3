@@ -654,3 +654,22 @@ svg .title {
 }
 
 
+
+/**********
+* Heatmap
+*/
+
+.nvd3.nv-heatmap rect {
+    fill-opacity: .7;
+    stroke: black;
+    stroke-width: 0.1;
+}
+
+.nvd3.nv-heatmap rect:hover {
+    fill-opacity: 1;
+}
+
+.nvd3.nv-heatmapChart .domain {
+  stroke-width: 0;
+}
+

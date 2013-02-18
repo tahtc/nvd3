@@ -3128,6 +3128,425 @@ nv.models.distribution = function() {
 
   return chart;
 }
+  nv.models.heatmap = function() {
+
+  //============================================================
+  // Public Variables with Default Settings
+  //------------------------------------------------------------
+
+  var margin = {top: 5, right: 5, bottom: 5, left: 5}
+    , width = 960
+    , height = 500
+    , x = d3.scale.ordinal()
+    , y = d3.scale.ordinal()
+    , id = Math.floor(Math.random() * 100000) //Create semi-unique ID incase user doesn't select one
+    , shape = {m: null, n: null}
+    , getRow = function(i) { return parseInt(i / shape.n); }
+    , getCol = function(i) { return parseInt(i % shape.n); }
+    , getX = function(d) { return d.x }
+    , getY = function(d) { return d.y }
+    , cellWidth
+    , cellHeight
+    , domain = [0, 1]
+    , xDomain
+    , yDomain
+    , colors = d3.scale.category20().range()
+    , heatmapPalette = d3.scale.linear().domain(domain).range(colors)
+    //, stroke        = 1;
+    //, strokeColor   = 'black'
+    ;
+
+    dispatch = d3.dispatch('elementMouseover', 'elementMouseout');
+
+  //============================================================
+
+
+  //============================================================
+  // Private Variables
+  //------------------------------------------------------------
+
+
+
+  //============================================================
+
+
+  function chart(selection) {
+    selection.each(function(data) {
+      container = d3.select(this);
+
+      shape.m = data.length || null;
+      shape.n = data.length && data[0].length || null;
+
+      var flattened = [];
+      data = flattened.concat.apply(flattened, data);
+
+      var availableWidth = width - margin.left - margin.right,
+      availableHeight = height - margin.top - margin.bottom;
+
+      cellWidth = Math.floor(availableWidth / shape.n);
+      cellHeight = Math.floor(availableHeight / shape.m);
+
+      //------------------------------------------------------------
+      // Setup Scales
+
+      x.domain(xDomain).rangeBands([0, availableWidth], .1);
+      y.domain(yDomain).rangeBands([0, availableHeight], .1);
+
+      //------------------------------------------------------------
+      // Setup containers and skeleton of chart
+
+      var wrap = container.selectAll('g.nv-wrap.nv-heatmap').data([data]);
+      var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-heatmap');
+      var gEnter = wrapEnter.append('g').attr('class', 'nv-cells');
+
+      var cells = wrap.select('.nv-cells').selectAll('.nv-cells').data(data);
+
+      cells.enter().append('rect')
+        .attr('class', function(d, i) {
+          var row = getRow(i);
+          var col = getCol(i);
+          return 'nv-cell nv-cell-' + row + '' + col + ' nv-row-' + row + ' nv-col-' + col;
+        })
+        .attr('width', cellWidth)
+        .attr('height', cellHeight)
+        .attr('x', function(d, i) { return getCol(i) * cellWidth; })
+        .attr('y', function(d, i) { return getRow(i) * cellHeight; })
+        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+        .style('fill', function(d) {
+            return heatmapPalette(d);
+        })
+        .on('mouseover', function(d, i) {
+            d3.select(this).classed('hover', true);
+            // dispatch.elementMouseover({
+            //   foo: 'foo',
+            //   bar: 'bar',
+            //   value: d[i],
+            //   pos: [getRow(i) * cellHeight, getCol(i) * cellWidth],
+            //   e: d3.event
+            // });
+        })
+        .on('mouseout', function() {
+          d3.select(this).classed('hover', false);
+        });
+    });
+
+    return chart;
+  }
+
+
+  //============================================================
+  // Expose Public Variables
+  //------------------------------------------------------------
+
+  chart.dispatch = dispatch;
+
+  chart.margin = function(_) {
+    if (!arguments.length) return margin;
+    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
+    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
+    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
+    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+    return chart;
+  };
+
+  chart.width = function(_) {
+    if (!arguments.length) return width;
+    width = _;
+    return chart;
+  };
+
+  chart.height = function(_) {
+    if (!arguments.length) return height;
+    height = _;
+    return chart;
+  };
+
+  chart.x = function(_) {
+    if (!arguments.length) return getX;
+    getX = _;
+    return chart;
+  };
+
+  chart.y = function(_) {
+    if (!arguments.length) return getY;
+    getY = _;
+    return chart;
+  };
+
+  chart.xScale = function(_) {
+    if (!arguments.length) return x;
+    x = _;
+    return chart;
+  };
+
+  chart.yScale = function(_) {
+    if (!arguments.length) return y;
+    y = _;
+    return chart;
+  };
+
+  chart.xDomain = function(_) {
+    if (!arguments.length) return xDomain;
+    xDomain = _;
+    return chart;
+  };
+
+  chart.yDomain = function(_) {
+    if (!arguments.length) return yDomain;
+    yDomain = _;
+    return chart;
+  };
+
+  chart.id = function(_) {
+    if (!arguments.length) return id;
+    id = _;
+    return chart;
+  };
+
+  chart.domain = function(_) {
+    if (!arguments.length) return domain;
+    domain = _;
+    return chart;
+  };
+
+    chart.colors = function(_) {
+    if (!arguments.length) return colors;
+    colors = _;
+    return chart;
+  };
+
+  //============================================================
+
+
+  return chart;
+};
+nv.models.heatmapChart = function() {
+  var heatmap = nv.models.heatmap()
+  , xAxis = nv.models.axis()
+  , yAxis = nv.models.axis()
+  , xLabels = []
+  , yLabels = []
+  , xTitle = ''
+  , yTitle = ''
+  , title = ''
+  , legend = null //TODO
+  ;
+
+var margin = {top: 20, right: 20, bottom: 300, left: 300}
+    , width = null
+    , height = null
+
+  // var tooltips = true
+  // , tooltip = function(foo, bar) {
+  //             return '<h3>' + foo + '</h3>' + '<p>' +  bar + '</p>'}
+
+  , dispatch = d3.dispatch() //'tooltipShow', 'tooltipHide')
+  ;
+
+  xAxis
+    .orient('bottom')
+    .highlightZero(false)
+    .showMaxMin(false)
+    ;
+  yAxis
+    .orient('left')
+    .highlightZero(false)
+    .showMaxMin(false)
+    ;
+
+  //============================================================
+  // Private Variables
+
+  // var showTooltip = function(e, offsetElement) {
+  //   var left = e.pos[0] + ( offsetElement.offsetLeft || 0 ),
+  //       top = e.pos[1] + ( offsetElement.offsetTop || 0),
+  //       x = xAxis.tickFormat()(heatmap.x()(e.point, e.pointIndex)),
+  //       y = yAxis.tickFormat()(heatmap.y()(e.point, e.pointIndex)),
+  //       content = tooltip('foo', 'bar');
+
+  //   nv.tooltip.show([left, top], content, e.value < 0 ? 'n' : 's', null, offsetElement);
+  // };
+
+
+  //------------------------------------------------------------
+
+  function chart(selection) {
+    selection.each(function(data) {
+      var container = d3.select(this);
+      that = this;
+
+      var availableWidth = (width  || parseInt(container.style('width')) || 960)
+                             - margin.left - margin.right,
+          availableHeight = (height || parseInt(container.style('height')) || 400)
+                             - margin.top - margin.bottom;
+
+      chart.update = function() { selection.call(chart) };
+      chart.container = this;
+
+      //------------------------------------------------------------
+      // Setup Scales
+
+      x = heatmap.xScale();
+      y = heatmap.yScale();
+
+      //------------------------------------------------------------
+      // Setup containers and skeleton of chart
+
+      var wrap = container.selectAll('g.nv-wrap.nv-heatmapChart').data([data]);
+      var gEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-heatmapChart').append('g');
+      var g = wrap.select('g');
+
+      gEnter.append('g').attr('class', 'nv-x nv-axis');
+      gEnter.append('g').attr('class', 'nv-y nv-axis');
+      gEnter.append('g').attr('class', 'nv-heatmapWrap');
+      //gEnter.append('g').attr('class', 'nv-legendWrap');
+
+      //------------------------------------------------------------
+
+      //------------------------------------------------------------
+      // Legend
+
+
+      //------------------------------------------------------------
+      // Main Chart Component(s)
+
+      heatmap
+        .width(availableWidth)
+        .height(availableHeight);
+
+      var heatmapWrap = g.select('.nv-heatmapWrap')
+        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+        .datum(data)
+        .call(heatmap);
+
+      //------------------------------------------------------------
+
+
+      //------------------------------------------------------------
+      // Setup Axes
+
+      xAxis
+        .scale(x)
+        .tickSize(0)
+        .rotateLabels(-90)
+        ;
+
+      g.select('.nv-x.nv-axis')
+        .attr('transform', 'translate(' + margin.left + ',' + (margin.top + availableHeight) + ')')
+        .call(xAxis);
+
+      g.select('.nv-x.nv-axis').selectAll('text')
+        .style('text-anchor', 'end')
+        .style('opacity', 1);
+
+      yAxis
+        .scale(y)
+        .tickSize(0);
+
+      g.select('.nv-y.nv-axis')
+        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+        .call(yAxis);
+
+      g.select('.nv-y.nv-axis').selectAll('text')
+        .style('text-anchor', 'end')
+        .style('opacity', 1);
+
+
+      //------------------------------------------------------------
+
+
+      //============================================================
+      // Event Handling/Dispatching (in chart's scope)
+      //------------------------------------------------------------
+
+      // dispatch.on('tooltipShow', function(e) {
+      //   if (tooltips) showTooltip(e, that.parentNode);
+      // });
+
+      //============================================================
+
+    });
+
+    return chart;
+  }
+
+
+  //============================================================
+  // Event Handling/Dispatching (out of chart's scope)
+  //------------------------------------------------------------
+
+  // discretebar.dispatch.on('elementMouseover.tooltip', function(e) {
+  //   e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
+  //   dispatch.tooltipShow(e);
+  // });
+
+  // discretebar.dispatch.on('elementMouseout.tooltip', function(e) {
+  //   dispatch.tooltipHide(e);
+  // });
+
+  // dispatch.on('tooltipHide', function() {
+  //   if (tooltips) nv.tooltip.cleanup();
+  // });
+
+  //============================================================
+
+
+  //============================================================
+  // Expose Public Variables
+  //------------------------------------------------------------
+
+  // expose chart's sub-components
+  chart.dispatch = dispatch;
+  chart.heatmap = heatmap;
+  chart.legend = legend;
+  chart.xAxis = xAxis;
+  chart.yAxis = yAxis;
+
+  d3.rebind(chart, heatmap, 'colors', 'domain', 'x', 'xDomain', 'y', 'yDomain', 'id');
+
+  chart.margin = function(_) {
+    if (!arguments.length) return margin;
+    margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
+    margin.right  = typeof _.right  != 'undefined' ? _.right  : margin.right;
+    margin.bottom = typeof _.bottom != 'undefined' ? _.bottom : margin.bottom;
+    margin.left   = typeof _.left   != 'undefined' ? _.left   : margin.left;
+    return chart;
+  };
+
+  chart.width = function(_) {
+    if (!arguments.length) return width;
+    width = _;
+    return chart;
+  };
+
+chart.height = function(_) {
+    if (!arguments.length) return height;
+    height = _;
+    return chart;
+  };
+
+  chart.xLabels = function(_) {
+    if (!arguments.length) return xLabels;
+    xLabels = _;
+    return chart;
+  };
+
+  chart.yLabels = function(_) {
+    if (!arguments.length) return yLabels;
+    yLabels = _;
+    return chart;
+  };
+
+  // chart.tooltips = function(_) {
+  //   if (!arguments.length) return tooltips;
+  //   tooltips = _;
+  //   return chart;
+  // };
+
+  //============================================================
+
+  return chart;
+};
 
 nv.models.indentedTree = function() {
 
