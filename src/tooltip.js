@@ -90,6 +90,8 @@
         if (tLeft < scrollLeft) left = scrollLeft + 5;
         if (tLeft + width > windowWidth) left = left - width/2 + 5;
         if (scrollTop > tTop) top = scrollTop;
+        if (top < 0) top = 0;
+        if (left < 0) left = 0;
         break;
     }
 
